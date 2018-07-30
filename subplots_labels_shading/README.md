@@ -6,7 +6,7 @@ two time-series with the same x-axis (i.e. the same timeframes).
 This is what the output of the graph looks like.  The lines are randomly
 generated; the image below is typical of what the graph will look like.
 
-![output graph](https://github.com/mpenning/python_graphing/tree/master/subplots_labels_shading/graph.png)
+![output graph](https://raw.githubusercontent.com/mpenning/python_graphing/master/subplots_labels_shading/graph.png)
 
 The input time-series data comes from a list of dictionaries.  The data is not
 very smooth, so I build an ewma with pandas, and the graphs you see are the 
