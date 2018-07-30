@@ -118,21 +118,15 @@ ax[1].axvspan(begin_idx, end_idx, alpha=0.5, color='grey')
 ############################################################
 
 ## Generate coordinates of the arrow head at the beginning of the shaded area...
-xcoord = mpdates.date2num(begin_idx)   # This is a pyplot coordinate system
-ycoord = df['data01_ewma'][begin_idx]
-
-## Generate coordinates of the annotation text...
-X_OFFSET_MINUTES = 45   # Offset text on the x-axis by -45 minutes
-Y_OFFSET_MULTIPLE = 2.0 # Multiply the Y-value by 2 for the Y text offset
-text_xcoord = mpdates.date2num(begin_idx-timedelta(minutes=X_OFFSET_MINUTES))
-text_ycoord = ycoord*Y_OFFSET_MULTIPLE
+arrow_xcoord = mpdates.date2num(begin_idx) # This is a pyplot coordinate system
+arrow_ycoord = df['data01_ewma'][begin_idx]
 
 ## Put annotation on the plot...
 ax[0].annotate(
     s='Problem started here',            # Annotation string
 
     ## Coordinates of the arrow head...
-    xy=(xcoord, ycoord), 
+    xy=(arrow_xcoord, arrow_ycoord), 
 
     # Coordinates of the left edge of the **arrow's text**... 
     #   textcoords indicates how the text placement is specified.  There are
