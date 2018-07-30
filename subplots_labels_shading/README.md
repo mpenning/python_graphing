@@ -14,8 +14,8 @@ ewma lines.
 
 The following modules are required to run this script:
 
-- matplotlib
-- pandas
+- matplotlib  (Using version 2.2.2 when I wrote this)
+- pandas  (Using version 0.23.3 when I wrote this)
 
 The script should be documented well enough.  Nothing in this script is 
 particularly innovative; I'm just keeping it here because there are so many

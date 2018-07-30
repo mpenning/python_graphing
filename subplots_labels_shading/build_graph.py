@@ -30,6 +30,14 @@ def generate_random_data(length, start_value):
         retval.append(val)
     return retval
 
+def custom_ylim_range(df):
+    """Return values to add 15% padding at the top and bottom of the y axis
+    """
+    diff = max(df) - min(df)
+    minimum = min(df) - 0.15*diff
+    maximum = max(df) + 0.15*diff
+    return {'bottom': minimum, 'top': maximum}
+
 ############################################################
 ###  Generate random data
 ############################################################
@@ -70,25 +78,28 @@ df.set_index('time', inplace=True)
 NUMBER_SUBPLOTS = 2
 fig, ax = plt.subplots(nrows=NUMBER_SUBPLOTS, sharex=True)
 
-## Add a graph title and ensure it's not overlapping graph (i.e. y=1.06)
-fig.suptitle('Time Series on 2018-07-25', fontsize=12, y=1.06)
+## You can add more whitespace for the title, if you call this with  y=1.03
+fig.suptitle('Time Series on 2018-07-25', fontsize=12)
 
 ## Plot the EWMA of the data, and manually override line names...
+AXIS_PAD = 1.3
 ax[0].plot(df.index, df['data01_ewma'], color='blue', label='this')
 ax[0].legend(loc='lower left')
-ax[0].set_title('Subplot stored in ax[0]')   ### <--- This does nothing
+ax[0].set_title('Subplot stored in ax[0]', color='blue')   # AxesSubplot title
+ax[0].set_ylim(**custom_ylim_range(df['data01_ewma']))     # Y-axis top/bottom
 ax[0].grid(b=True)
 
 ax[1].plot(df.index, df['data02_ewma'], color='red', label='that')
 ax[1].legend(loc='lower left')
-ax[1].set_title('Subplot stored in ax[1]')   ### <--- This does nothing
+ax[1].set_title('Subplot stored in ax[1]', color='red')    # AxesSubplot title
+ax[1].set_ylim(**custom_ylim_range(df['data02_ewma']))     # Y-axis top/bottom
 ax[1].grid(b=False)
 
 ############################################################
 ###  Add vertical *shading* to the plot
 ############################################################
 
-## Shade an area to highlight something...
+## pyplot requires the pandas index start and stop the shading
 BEGIN_SHADE = '2018-07-25 14:45:00'
 END_SHADE   = '2018-07-25 15:06:00'
 begin_idx = df.index[
@@ -98,6 +109,7 @@ end_idx   = df.index[
     df.index.get_loc(pd.to_datetime(END_SHADE), method='nearest')
     ]
 
+# Add Vertical shading
 ax[0].axvspan(begin_idx, end_idx, alpha=0.5, color='grey')
 ax[1].axvspan(begin_idx, end_idx, alpha=0.5, color='grey')
 
@@ -106,28 +118,51 @@ ax[1].axvspan(begin_idx, end_idx, alpha=0.5, color='grey')
 ############################################################
 
 ## Generate coordinates of the arrow head at the beginning of the shaded area...
-xcoord = mpdates.date2num(begin_idx)
+xcoord = mpdates.date2num(begin_idx)   # This is a pyplot coordinate system
 ycoord = df['data01_ewma'][begin_idx]
 
 ## Generate coordinates of the annotation text...
-X_OFFSET_MINUTES = 45
-Y_OFFSET_MULTIPLE = 2.0
+X_OFFSET_MINUTES = 45   # Offset text on the x-axis by -45 minutes
+Y_OFFSET_MULTIPLE = 2.0 # Multiply the Y-value by 2 for the Y text offset
 text_xcoord = mpdates.date2num(begin_idx-timedelta(minutes=X_OFFSET_MINUTES))
 text_ycoord = ycoord*Y_OFFSET_MULTIPLE
 
 ## Put annotation on the plot...
-ax[0].annotate('Problem started here',
+ax[0].annotate(
+    s='Problem started here',            # Annotation string
 
     ## Coordinates of the arrow head...
     xy=(xcoord, ycoord), 
 
-    # Coordinates of the arrow text...
-    textcoords='data',
-    xytext=(text_xcoord, text_ycoord),
+    # Coordinates of the left edge of the **arrow's text**... 
+    #   textcoords indicates how the text placement is specified.  There are
+    #   a lot of possibilities.  See the annotate() documentation for details
+    textcoords='offset pixels',
+    xytext=(-100, 175),
+
+    va="center",
+    ha="right",
+
+    fontsize=8,   # Controls annotation text size
 
     clip_on=True,
-    arrowprops=dict(arrowstyle='->',
-        connectionstyle='arc,angleA=0,armA=50,rad=10')
+
+    # connectionstyle parameters -
+    #     angleA : starting angle of the path
+    #     angleB : ending angle of the path
+    #     armA : length of the starting arm
+    #     armB : length of the ending arm
+    #     rad : rounding radius of the edges
+    #     connect(posA, posB)
+    #
+    #  Note: angle 0 is pointing right, and rotates clockwise.
+    arrowprops=dict(
+        arrowstyle="->",
+        # Notes on relpos: https://stackoverflow.com/a/48216502/667301
+        relpos=(0, 0.5),
+        connectionstyle="angle,angleA=0,angleB=60",
+        #connectionstyle="arc,armA=0,armB=0",
+        )
     )
 
 
@@ -138,7 +173,7 @@ ax[0].annotate('Problem started here',
 # Format the x-axis ticks...
 date_locator = mpdates.AutoDateLocator()
 #timefmt = mpdates.DateFormatter('%Y-%m-%d %H:%M:%S')
-timefmt = mpdates.DateFormatter('%H:%M:%S')
+timefmt = mpdates.DateFormatter('%H:%M:%S')  # Only show H:M:S on the graph...
 ax[1].xaxis.set_major_formatter(timefmt)
 for tick in ax[1].get_xticklabels():
     tick.set_rotation(90)
@@ -153,6 +188,4 @@ font = {'family': 'DejaVu Sans',
     'size': 10}
 matplotlib.rc('font', **font)
 
-fig.tight_layout(pad=2)       # labels don't run off the plot w/ 0.75" margins
-fig.subplots_adjust(top=0.88) # https://stackoverflow.com/a/35676071/667301
-fig.savefig('graph.png', bbox_inches='tight')
+fig.savefig('graph.png', bbox_inches='tight', dpi=300)
