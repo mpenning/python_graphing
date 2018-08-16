@@ -70,6 +70,7 @@ df['data02_ewma'] = df['data02'].ewm(com=100).mean()
 
 ## Force the df index to be the time column
 df.set_index('time', inplace=True)
+df.index = pd.to_datetime(df.index)   # Cast index as datetime objects
 
 
 ## Get the figure and axes objects from matplotlib.pyplot (plt)
